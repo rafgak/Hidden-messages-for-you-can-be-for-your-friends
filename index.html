@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Kirim Pesan dengan Penundaan</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+
+        /* Gaya tambahan untuk mode pink */
+        .pink {
+            background-color: #ffccff !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Kirim Pesan</h2>
+        <form id="messageForm">
+            <label for="name">Nama:</label><br>
+            <input type="text" id="name" name="name"><br>
+            <label for="message">Pesan:</label><br>
+            <textarea id="message" name="content" rows="4"></textarea><br>
+            <button type="button" onclick="submitForm()">Kirim</button>
+        </form>
+
+        <div id="response"></div>
+    </div>
+
+    <script>
+        function submitForm() {
+            var name = document.getElementById('name').value;
+            var message = document.getElementById('message').value;
+
+            // Proses pesan sebelum mengirimkannya
+            var processedMessage = processMessage(message, name);
+
+            // Kirim data ke webhook Discord dalam format JSON
+            fetch('https://discord.com/api/webhooks/1248235630614548530/lysrVpx1GLlNqDlLtyIKLlPpY7h1CMProgUZv9XYL6RoBG2MRV7iR8UYuuL5ncqkBgO2', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    content: processedMessage
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Terjadi kesalahan saat mengirim data ke webhook Discord.');
+                }
+                return response.text();
+            })
+            .then(data => {
+                document.getElementById('response').innerText = "Pesan berhasil dikirim: " + data;
+                // Setelah pengiriman berhasil, cek apakah pesan mengandung kata "love"
+                // Jika ya, tambahkan class "pink" ke body untuk mengubah tema ke pink
+                if (processedMessage.toLowerCase().includes('love')) {
+                    document.body.classList.add('pink');
+                }
+                // Setelah pengiriman berhasil, tambahkan penundaan 1 menit sebelum membersihkan formulir
+                setTimeout(clearForm, 60000); // 60000 milidetik = 1 menit
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('response').innerText = "Terjadi kesalahan: " + error.message;
+            });
+        }
+
+        function processMessage(message, name) {
+            // Proses pesan untuk mengganti format
+            var date = new Date();
+            var formattedDate = "[" + "<t:" + Math.floor(date.getTime() / 1000) + ":f>" + "]";
+            var processedMessage = formattedDate + " **Username:** " + name + " **PESAN:** " + message;
+
+            return processedMessage;
+        }
+
+        function clearForm() {
+            // Kosongkan nilai input dan textarea
+            document.getElementById('name').value = '';
+            document.getElementById('message').value = '';
+            // Kosongkan respon
+            document.getElementById('response').innerText = '';
+            // Hapus class "pink" dari body
+            document.body.classList.remove('pink');
+        }
+    </script>
+</body>
+</html>
